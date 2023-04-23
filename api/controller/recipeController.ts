@@ -14,11 +14,13 @@ export async function createRecipe(req: Request, res: Response) {
   } = req.body;
 
   try {
-    const result = await pool.query(
+    const uuid = v4();
+
+    await pool.query(
       `
     INSERT INTO recipe (private_id,name,author_id,author_name,image_link,description,ingredients) VALUES(?,?,?,?,?,?,?)`,
       [
-        v4(),
+        uuid,
         recipeName,
         authorId,
         authorName,
@@ -28,7 +30,7 @@ export async function createRecipe(req: Request, res: Response) {
       ]
     );
 
-    res.status(201).json({ result, success: true });
+    res.status(201).json({ uuid, success: true });
   } catch (error) {
     res.status(500).json({ error, success: false });
   }
