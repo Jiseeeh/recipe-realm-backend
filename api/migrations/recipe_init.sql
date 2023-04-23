@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS `recipe`(
     author_name VARCHAR(50) NOT NULL,
     image_link VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
-    ingredients JSON NOT NULL,
+    ingredients TEXT NOT NULL,
     PRIMARY KEY(id),
-    FOREIGN KEY(author_id) REFERENCES user(`id`)
+    FOREIGN KEY(author_id) REFERENCES user(id)
 );
