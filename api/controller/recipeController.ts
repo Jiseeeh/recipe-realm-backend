@@ -6,6 +6,7 @@ import { pool } from "../services/database";
 export async function createRecipe(req: Request, res: Response) {
   const {
     recipeName,
+    authorId,
     authorName,
     imageLink,
     recipeIngredients,
@@ -15,10 +16,11 @@ export async function createRecipe(req: Request, res: Response) {
   try {
     const result = await pool.query(
       `
-    INSERT INTO recipe (private_id,name,author_name,image_link,description,ingredients) VALUES(?,?,?,?,?,?)`,
+    INSERT INTO recipe (private_id,name,author_id,author_name,image_link,description,ingredients) VALUES(?,?,?,?,?,?,?)`,
       [
         v4(),
         recipeName,
+        authorId,
         authorName,
         imageLink,
         recipeDescription,
@@ -32,7 +34,11 @@ export async function createRecipe(req: Request, res: Response) {
   }
 }
 
-// export function createRecipe (req:Request,res:Response) {}
+export async function getRecipes(req: Request, res: Response) {
+  const result = await pool.query("SELECT * FROM recipe");
+
+  res.json(result[0]);
+}
 // export function createRecipe (req:Request,res:Response) {}
 // export function createRecipe (req:Request,res:Response) {}
 // export function createRecipe (req:Request,res:Response) {}
