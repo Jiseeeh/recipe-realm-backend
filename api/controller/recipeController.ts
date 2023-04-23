@@ -12,20 +12,24 @@ export async function createRecipe(req: Request, res: Response) {
     recipeDescription,
   } = req.body;
 
-  const result = await pool.query(
-    `
-  INSERT INTO recipe (private_id,name,author_name,image_link,description,ingredients) VALUES(?,?,?,?,?,?)`,
-    [
-      v4(),
-      recipeName,
-      authorName,
-      imageLink,
-      recipeDescription,
-      recipeIngredients,
-    ]
-  );
+  try {
+    const result = await pool.query(
+      `
+    INSERT INTO recipe (private_id,name,author_name,image_link,description,ingredients) VALUES(?,?,?,?,?,?)`,
+      [
+        v4(),
+        recipeName,
+        authorName,
+        imageLink,
+        recipeDescription,
+        recipeIngredients,
+      ]
+    );
 
-  res.json(result);
+    res.status(201).json({ result, success: true });
+  } catch (error) {
+    res.status(500).json({ error, success: false });
+  }
 }
 
 // export function createRecipe (req:Request,res:Response) {}
