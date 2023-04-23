@@ -37,10 +37,15 @@ export async function createRecipe(req: Request, res: Response) {
 }
 
 export async function getRecipes(req: Request, res: Response) {
-  const result = await pool.query("SELECT * FROM recipe");
+  try {
+    const result = await pool.query("SELECT * FROM recipe");
 
-  res.json(result[0]);
+    res.status(200).json(result[0]);
+  } catch (error) {
+    res.status(500).json({ message: "Something went wrong." });
+  }
 }
+
 // export function createRecipe (req:Request,res:Response) {}
 // export function createRecipe (req:Request,res:Response) {}
 // export function createRecipe (req:Request,res:Response) {}
