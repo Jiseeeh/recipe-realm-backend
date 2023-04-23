@@ -9,7 +9,8 @@ export async function createUser(req: Request, res: Response) {
     const result = await pool.query("INSERT INTO user (name) VALUES (?)", [
       username,
     ]);
-    res.status(201).json({ result, success: true });
+
+    res.status(201).json({ id: result[0].insertId, username, success: true });
   } catch (error) {
     res.status(500).json({ error, success: false });
   }
