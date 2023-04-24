@@ -57,3 +57,15 @@ export async function getRecipe(req: Request, res: Response) {
     res.status(500).json({ message: "Something went wrong." });
   }
 }
+
+export async function deleteRecipe(req: Request, res: Response) {
+  const { id: private_id } = req.params;
+
+  try {
+    await pool.query("DELETE FROM recipe WHERE private_id=?", [private_id]);
+
+    res.status(200).json({ message: "Deleted successfully", success: true });
+  } catch (error) {
+    res.status(500).json({ message: "Something went wrong.", success: false });
+  }
+}
