@@ -45,10 +45,3 @@ export async function getRecipes(req: Request, res: Response) {
     res.status(500).json({ message: "Something went wrong." });
   }
 }
-
-// export function createRecipe (req:Request,res:Response) {}
-// export function createRecipe (req:Request,res:Response) {}
-// export function createRecipe (req:Request,res:Response) {}
-// export function createRecipe (req:Request,res:Response) {}
-// export function createRecipe (req:Request,res:Response) {}
-// export function createRecipe (req:Request,res:Response) {}
