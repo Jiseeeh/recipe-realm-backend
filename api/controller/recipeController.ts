@@ -45,3 +45,15 @@ export async function getRecipes(req: Request, res: Response) {
     res.status(500).json({ message: "Something went wrong." });
   }
 }
+
+export async function getRecipe(req: Request, res: Response) {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query("SELECT * FROM recipe WHERE id=?", [id]);
+
+    res.status(200).json(result[0][0]);
+  } catch (error) {
+    res.status(500).json({ message: "Something went wrong." });
+  }
+}
