@@ -5,7 +5,7 @@
 ### user POST
 
 - `/api/user`
-  - body
+  - query
     - username : string
   - reponses
     - 201 = success
@@ -21,13 +21,13 @@
 ### recipe POST
 
 - `/api/recipe`
-  - body
-    - recipeName : string
-    - authorId : int
-    - authorName: string
-    - imageLink : string
-    - recipeIngredients : string
-    - recipeDescription : string
+  - query
+    - recipeName
+    - authorId
+    - authorName
+    - imageLink
+    - recipeIngredients
+    - recipeDescription
   - responses
     - 201 = success
     - 500 = failed
@@ -35,8 +35,6 @@
 ### single recipe GET
 
 - `/api/recipe/:id`
-  - body
-    - id
   - responses
     - 200 = success
     - 500 = failed
@@ -44,11 +42,11 @@
 ### single recipe PATCH
 
 - `/api/recipe/:id`
-  - body
-    - recipeName : string
-    - imageLink : string
-    - recipeIngredients : string
-    - recipeDescription : string
+  - query
+    - recipeName 
+    - imageLink
+    - recipeIngredients
+    - recipeDescription
   - responses
     - 200 = success
     - 500 = failed
