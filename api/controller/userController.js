@@ -1,7 +1,7 @@
 import { pool } from "../services/database";
 
 export async function createUser(req, res) {
-  const { username } = req.body;
+  const { username } = req.query;
 
   try {
     const result = await pool.query("INSERT INTO user (name) VALUES (?)", [
