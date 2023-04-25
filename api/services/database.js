@@ -12,18 +12,18 @@ const pool = mysql
   })
   .promise();
 
-async function init(_, __, next) {
-  const files = ["user_init.sql", "recipe_init.sql"];
+// async function init(_, __, next) {
+//   const files = ["user_init.sql", "recipe_init.sql"];
 
-  for (const file of files) {
-    const data = await fs.promises.readFile(
-      path.join("api", "migrations", file),
-      "utf-8"
-    );
+//   for (const file of files) {
+//     const data = await fs.promises.readFile(
+//       path.join("api", "migrations", file),
+//       "utf-8"
+//     );
 
-    await pool.query(data);
-  }
-  next();
-}
+//     await pool.query(data);
+//   }
+//   next();
+// }
 
-export { pool, init };
+export { pool };
