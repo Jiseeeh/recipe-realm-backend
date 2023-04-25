@@ -82,6 +82,6 @@ export async function updateRecipe(req, res) {
 
     res.status(200).json({ message: "Update success", success: true });
   } catch (error) {
-    res.json({ message: "Something went wrong.", success: false });
+    res.status(500).json({ message: "Something went wrong.", success: false });
   }
 }
