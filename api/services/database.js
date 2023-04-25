@@ -11,13 +11,16 @@ const pool = mysql
   })
   .promise();
 
-function init(_, __, next) {
+async function init(_, __, next) {
   const files = ["user_init.sql", "recipe_init.sql"];
 
   for (const file of files) {
-    fs.readFile(path.join("api", "migrations", file), "utf-8", (_, data) => {
-      pool.query(data);
-    });
+    const data = await fs.promises.readFile(
+      path.join("api", "migrations", file),
+      "utf-8"
+    );
+
+    await pool.query(data);
   }
   next();
 }
