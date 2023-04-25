@@ -10,7 +10,7 @@ export async function createRecipe(req, res) {
     imageLink,
     recipeIngredients,
     recipeDescription,
-  } = req.body;
+  } = req.query;
 
   try {
     const uuid = v4();
@@ -72,7 +72,7 @@ export async function deleteRecipe(req, res) {
 export async function updateRecipe(req, res) {
   const { id } = req.params;
   const { recipeName, imageLink, recipeIngredients, recipeDescription } =
-    req.body;
+    req.query;
 
   try {
     const result = await pool.query(
