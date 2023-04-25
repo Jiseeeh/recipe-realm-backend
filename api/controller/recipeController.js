@@ -68,3 +68,20 @@ export async function deleteRecipe(req, res) {
     res.status(500).json({ message: "Something went wrong.", success: false });
   }
 }
+
+export async function updateRecipe(req, res) {
+  const { id } = req.params;
+  const { recipeName, imageLink, recipeIngredients, recipeDescription } =
+    req.body;
+
+  try {
+    const result = await pool.query(
+      "UPDATE recipe SET name=?,image_link=?,ingredients=?,description=? WHERE id=?",
+      [recipeName, imageLink, recipeIngredients, recipeDescription, id]
+    );
+
+    res.status(200).json({ message: "Update success", success: true });
+  } catch (error) {
+    res.json({ message: "Something went wrong.", success: false });
+  }
+}
