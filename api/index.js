@@ -1,16 +1,16 @@
-import express, { Express, Request, Response } from "express";
+import express from "express";
 
 import { init } from "./services/database";
 import user from "./routes/user";
 import recipe from "./routes/recipe";
 
-const app: Express = express();
+const app = express();
 
 app.use(init);
 app.use(user);
 app.use(recipe);
 
-app.get("/api", (req: Request, res: Response) => {
+app.get("/api", (req, res) => {
   res.json({ message: "welcome" });
 });
 

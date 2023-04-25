@@ -1,9 +1,8 @@
-import { Request, Response } from "express";
 import { v4 } from "uuid";
 
 import { pool } from "../services/database";
 
-export async function createRecipe(req: Request, res: Response) {
+export async function createRecipe(req, res) {
   const {
     recipeName,
     authorId,
@@ -36,7 +35,7 @@ export async function createRecipe(req: Request, res: Response) {
   }
 }
 
-export async function getRecipes(req: Request, res: Response) {
+export async function getRecipes(req, res) {
   try {
     const result = await pool.query("SELECT * FROM recipe");
 
@@ -46,7 +45,7 @@ export async function getRecipes(req: Request, res: Response) {
   }
 }
 
-export async function getRecipe(req: Request, res: Response) {
+export async function getRecipe(req, res) {
   const { id } = req.params;
 
   try {
@@ -58,7 +57,7 @@ export async function getRecipe(req: Request, res: Response) {
   }
 }
 
-export async function deleteRecipe(req: Request, res: Response) {
+export async function deleteRecipe(req, res) {
   const { id: private_id } = req.params;
 
   try {

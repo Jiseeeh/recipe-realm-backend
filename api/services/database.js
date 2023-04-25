@@ -1,10 +1,8 @@
 import mysql from "mysql2";
-import Pool from "mysql2/typings/mysql/lib/Pool";
 import fs from "fs";
 import path from "path";
-import { NextFunction } from "express";
 
-const pool: Pool = mysql
+const pool = mysql
   .createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -13,7 +11,7 @@ const pool: Pool = mysql
   })
   .promise();
 
-function init(_, __, next: NextFunction) {
+function init(_, __, next) {
   const files = ["user_init.sql", "recipe_init.sql"];
 
   for (const file of files) {

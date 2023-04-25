@@ -1,9 +1,9 @@
-import express, { Express } from "express";
+import express from "express";
 
 import { createUser } from "../controller/userController";
 
-const app: Express = express();
+const app = express();
 
 app.route("/api/user").post(createUser);
 
-export default app;
+module.exports = app;

@@ -1,4 +1,4 @@
-import express, { Express } from "express";
+import express from "express";
 
 import {
   createRecipe,
@@ -7,9 +7,9 @@ import {
   deleteRecipe,
 } from "../controller/recipeController";
 
-const app: Express = express();
+const app = express();
 
 app.route("/api/recipe").get(getRecipes).post(createRecipe);
 app.route("/api/recipe/:id").get(getRecipe).delete(deleteRecipe);
 
-export default app;
+module.exports = app;

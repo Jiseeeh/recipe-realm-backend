@@ -1,8 +1,6 @@
-import { Request, Response } from "express";
-
 import { pool } from "../services/database";
 
-export async function createUser(req: Request, res: Response) {
+export async function createUser(req, res) {
   const { username } = req.body;
 
   try {
