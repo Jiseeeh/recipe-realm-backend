@@ -12,18 +12,20 @@ const pool = mysql
   })
   .promise();
 
-// async function init(_, __, next) {
-//   const files = ["user_init.sql", "recipe_init.sql"];
+async function init() {
+  try {
+    const migrationDir = path.join(__dirname, "migrations");
+    const migrationsFiles = fs.readdirSync(migrationDir).sort();
 
-//   for (const file of files) {
-//     const data = await fs.promises.readFile(
-//       path.join("api", "migrations", file),
-//       "utf-8"
-//     );
+    for (const file of migrationsFiles) {
+      const sql = fs.readFileSync(path.join(migrationDir, file), "utf-8");
+      await pool.query(sql);
+      console.log("Migrate Success!");
+    }
+  } catch (error) {
+    // re throw for error handler in index.js
+    throw error;
+  }
+}
 
-//     await pool.query(data);
-//   }
-//   next();
-// }
-
-export { pool };
+export { pool, init };
