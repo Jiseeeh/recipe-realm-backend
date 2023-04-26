@@ -15,7 +15,7 @@ const pool = mysql
 async function init() {
   try {
     const migrationDir = path.join(__dirname, "migrations");
-    const migrationsFiles = fs.readdirSync(migrationDir).sort();
+    const migrationsFiles = fs.readdirSync(migrationDir).reverse();
 
     for (const file of migrationsFiles) {
       const sql = fs.readFileSync(path.join(migrationDir, file), "utf-8");
