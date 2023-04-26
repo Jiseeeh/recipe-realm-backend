@@ -24,12 +24,14 @@ export async function checkUser(req, res) {
   const { username, password } = req.query;
 
   const result = await pool.query(
-    "SELECT id,name FROM user WHERE name=? AND password=?",
+    "SELECT id,name,is_admin FROM user WHERE name=? AND password=?",
     [username, password]
   );
 
   // has match
   if (result[0].length >= 1)
-    res.status(200).json({ message: "Login Success!", success: true });
+    res
+      .status(200)
+      .json({ message: "Login Success!", result: result[0][0], success: true });
   else res.status(404).json({ message: "Login Failed", success: false });
 }
