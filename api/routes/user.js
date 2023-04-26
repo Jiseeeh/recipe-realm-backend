@@ -1,9 +1,9 @@
 import express from "express";
 
-import { createUser } from "../controller/userController";
+import { createUser, checkUser } from "../controller/userController";
 
 const app = express();
 
-app.route("/api/user").post(createUser);
+app.route("/api/user").get(checkUser).post(createUser);
 
 module.exports = app;
