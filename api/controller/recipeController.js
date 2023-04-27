@@ -47,6 +47,22 @@ export async function getRecipes(req, res) {
   }
 }
 
+export async function getRecipesByUser(req, res) {
+  const { id, username: name } = req.params;
+
+  const result = await pool.query(
+    "SELECT * FROM recipe WHERE author_id=? AND author_name=?",
+    [id, name]
+  );
+
+  const recipes = result[0];
+  if (recipes.length >= 1) {
+    res.status(200).json(recipes);
+  } else {
+    res.status(404).json({ message: "No recipes found" });
+  }
+}
+
 export async function getRecipe(req, res) {
   const { id } = req.params;
 

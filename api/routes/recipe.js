@@ -3,6 +3,7 @@ import express from "express";
 import {
   createRecipe,
   getRecipes,
+  getRecipesByUser,
   getRecipe,
   deleteRecipe,
   updateRecipe,
@@ -16,5 +17,7 @@ app
   .get(getRecipe)
   .patch(updateRecipe)
   .delete(deleteRecipe);
+
+app.route("/api/recipe/:id/:username").get(getRecipesByUser);
 
 module.exports = app;
