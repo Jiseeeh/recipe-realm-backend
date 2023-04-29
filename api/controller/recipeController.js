@@ -66,12 +66,12 @@ export async function getRecipesByUser(req, res) {
 export async function getRecipe(req, res) {
   const { id } = req.params;
 
-  try {
-    const result = await pool.query("SELECT * FROM recipe WHERE id=?", [id]);
+  const result = await pool.query("SELECT * FROM recipe WHERE id=?", [id]);
 
+  if (result[0].length === 1) {
     res.status(200).json(result[0][0]);
-  } catch (error) {
-    res.status(500).json({ message: "Something went wrong." });
+  } else {
+    res.status(404).json({ message: "No recipe found with that ID" });
   }
 }
 
