@@ -36,12 +36,14 @@ export async function createRecipe(req, res) {
 }
 
 export async function getRecipes(req, res) {
-  try {
-    const result = await pool.query("SELECT * FROM recipe");
+  const result = await pool.query("SELECT * FROM recipe");
 
-    res.status(200).json(result[0]);
-  } catch (error) {
-    res.status(500).json({ message: "Something went wrong." });
+  const recipes = result[0];
+
+  if (recipes.length >= 1) {
+    res.status(200).json(recipes);
+  } else {
+    res.status(404).json({ message: "No recipes found!" });
   }
 }
 
