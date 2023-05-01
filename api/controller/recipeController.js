@@ -36,7 +36,9 @@ export async function createRecipe(req, res) {
 }
 
 export async function getRecipes(req, res) {
-  const result = await pool.query("SELECT * FROM recipe");
+  const result = await pool.query(
+    "SELECT * FROM recipe WHERE is_pending = FALSE"
+  );
 
   const recipes = result[0];
 
