@@ -1,5 +1,33 @@
 import { pool } from "../services/database";
 
+export async function getRecipes(req, res) {
+  // check if user is really an admin
+  const { id, username: name } = req.query;
+
+  const user = await pool.query(
+    "SELECT is_admin FROM user WHERE id=? AND name=?",
+    [id, name]
+  );
+  const isAdmin = !!user[0][0].is_admin;
+
+  if (!isAdmin) {
+    res.status(403).json({
+      message: "You are not allowed to access this resource",
+      success: false,
+    });
+  } else {
+    const result = await pool.query("SELECT * FROM recipe");
+
+    const recipes = result[0];
+
+    if (recipes.length >= 1) {
+      res.status(200).json(recipes);
+    } else {
+      res.status(404).json({ message: "No recipes found!" });
+    }
+  }
+}
+
 export async function approveRecipe(req, res) {
   const { id } = req.params;
 

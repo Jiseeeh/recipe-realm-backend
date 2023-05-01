@@ -1,6 +1,7 @@
 import express from "express";
 
 import {
+  getRecipes,
   approveRecipe,
   disapproveRecipe,
   deleteRecipe,
@@ -10,6 +11,8 @@ import {
 } from "../controller/adminController";
 
 const app = express();
+
+app.route("/api/admin/recipe").get(getRecipes);
 
 app.route("/api/admin/bulkApprove").patch(bulkApprove);
 app.route("/api/admin/bulkDisapprove").patch(bulkDisapprove);
