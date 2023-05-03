@@ -8,6 +8,14 @@ export async function getRecipes(req, res) {
     "SELECT is_admin FROM user WHERE id=? AND name=?",
     [id, name]
   );
+
+  const result = user[0];
+
+  if (result.length === 0) {
+    res.status(404).json({ message: "Invalid Request", clearCache: true });
+    return;
+  }
+
   const isAdmin = !!user[0][0].is_admin;
 
   if (!isAdmin) {
