@@ -31,7 +31,7 @@ export async function createRecipe(req, res) {
 
     res.status(201).json({ uuid, success: true });
   } catch (error) {
-    res.status(500).json({ error, success: false });
+    res.status(500).json({ message: "Something went wrong", clearCache: true });
   }
 }
 
