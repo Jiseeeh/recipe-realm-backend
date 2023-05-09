@@ -16,22 +16,37 @@ export async function createUser(req, res) {
       success: true,
     });
   } catch (error) {
-    res.status(500).json({ message: "Name is already taken.", success: false });
+    if (error.code === "ER_DUP_ENTRY")
+      res
+        .status(500)
+        .json({ message: "Name is already taken.", success: false });
+    else
+      res
+        .status(500)
+        .json({ message: "Server is down at the moment.", success: false });
   }
 }
 
 export async function checkUser(req, res) {
   const { username, password } = req.query;
 
-  const result = await pool.query(
-    "SELECT id,name,is_admin FROM user WHERE name=? AND password=?",
-    [username, password]
-  );
+  try {
+    const result = await pool.query(
+      "SELECT id,name,is_admin FROM user WHERE name=? AND password=?",
+      [username, password]
+    );
 
-  // has match
-  if (result[0].length >= 1)
+    // has match
+    if (result[0].length >= 1)
+      res.status(200).json({
+        message: "Login Success!",
+        result: result[0][0],
+        success: true,
+      });
+    else res.status(404).json({ message: "Login Failed", success: false });
+  } catch (error) {
     res
-      .status(200)
-      .json({ message: "Login Success!", result: result[0][0], success: true });
-  else res.status(404).json({ message: "Login Failed", success: false });
+      .status(500)
+      .json({ message: "Server is down at the moment.", success: false });
+  }
 }
