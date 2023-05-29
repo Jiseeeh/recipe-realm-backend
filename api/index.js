@@ -1,4 +1,5 @@
 import express from "express";
+import dotenv from "dotenv";
 import { v4 } from "uuid";
 
 import { pool } from "./services/database";
@@ -6,8 +7,10 @@ import { migrations } from "./services/migrations/migrations";
 import user from "./routes/user";
 import recipe from "./routes/recipe";
 import admin from "./routes/admin";
+import { errorHandler, noRouteFoundHandler } from "./middleware/errorHandler";
 
 const app = express();
+dotenv.config();
 
 app.use(user);
 app.use(recipe);
@@ -25,7 +28,7 @@ app.get("/api", async (req, res) => {
   }
 });
 
-app.get("/api/seed", async (req, res) => {
+app.get("/api/seed", async (req, res, next) => {
   const recipes = [
     {
       name: "Special Bicol Express",
@@ -121,9 +124,14 @@ app.get("/api/seed", async (req, res) => {
     }
 
     res.status(200).json({ message: "Seeding success!" });
-  } catch (error) {
-    res.json({ message: "Something went wrong!" });
+  } catch {
+    // re throw
+    next(new Error());
   }
 });
+
+// error handlers
+app.use(errorHandler);
+app.use(noRouteFoundHandler);
 
 module.exports = app;
