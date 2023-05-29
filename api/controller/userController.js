@@ -1,6 +1,6 @@
 import { pool } from "../services/database";
 
-export async function createUser(req, res) {
+export async function createUser(req, res, next) {
   const { username, password } = req.query;
 
   try {
@@ -16,19 +16,25 @@ export async function createUser(req, res) {
       success: true,
     });
   } catch (error) {
-    if (error.code === "ER_DUP_ENTRY")
-      res
-        .status(500)
-        .json({ message: "Name is already taken.", success: false });
-    else
-      res
-        .status(500)
-        .json({ message: "Server is down at the moment.", success: false });
+    if (error.code === "ER_DUP_ENTRY") {
+      const err = new Error();
+      err.response = { message: "Name is already taken." };
+      err.statusCode = 409;
+
+      next(err);
+    } else {
+      const err = new Error();
+      err.response = { message: "Server is down at the moment." };
+
+      next(err);
+    }
   }
 }
 
-export async function checkUser(req, res) {
+export async function checkUser(req, res, next) {
   const { username, password } = req.query;
+
+  const err = new Error();
 
   try {
     const result = await pool.query(
@@ -43,10 +49,17 @@ export async function checkUser(req, res) {
         result: result[0][0],
         success: true,
       });
-    else res.status(404).json({ message: "Login Failed", success: false });
+    else {
+      err.response = { message: "Login Failed" };
+      err.statusCode = 404;
+
+      next(err);
+    }
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Server is down at the moment.", success: false });
+    // re throw
+    const err = new Error();
+    err.response = { message: "Server is down at the moment." };
+
+    next(err);
   }
 }

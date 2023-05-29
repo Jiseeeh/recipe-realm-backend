@@ -2,7 +2,7 @@ import { v4 } from "uuid";
 
 import { pool } from "../services/database";
 
-export async function createRecipe(req, res) {
+export async function createRecipe(req, res, next) {
   const {
     recipeName,
     authorId,
@@ -31,11 +31,15 @@ export async function createRecipe(req, res) {
 
     res.status(201).json({ uuid, success: true });
   } catch (error) {
-    res.status(500).json({ message: "Something went wrong", clearCache: true });
+    // re throw
+    const err = new Error();
+    err.response = { message: "Something went wrong", clearCache: true };
+
+    next(err);
   }
 }
 
-export async function getRecipes(req, res) {
+export async function getRecipes(req, res, next) {
   const result = await pool.query(
     "SELECT * FROM recipe WHERE is_pending = FALSE"
   );
@@ -45,11 +49,15 @@ export async function getRecipes(req, res) {
   if (recipes.length >= 1) {
     res.status(200).json(recipes);
   } else {
-    res.status(404).json({ message: "No recipes found!" });
+    const err = new Error();
+    err.response = { message: "No recipes found!" };
+    err.statusCode = 404;
+
+    next(err);
   }
 }
 
-export async function getRecipesByUser(req, res) {
+export async function getRecipesByUser(req, res, next) {
   const { id, username: name } = req.params;
 
   const result = await pool.query(
@@ -58,14 +66,19 @@ export async function getRecipesByUser(req, res) {
   );
 
   const recipes = result[0];
+
   if (recipes.length >= 1) {
     res.status(200).json(recipes);
   } else {
-    res.status(404).json({ message: "No recipes found" });
+    const err = new Error();
+    err.response = { message: "No recipes found!" };
+    err.statusCode = 404;
+
+    next(err);
   }
 }
 
-export async function getRecipe(req, res) {
+export async function getRecipe(req, res, next) {
   const { id } = req.params;
 
   const result = await pool.query("SELECT * FROM recipe WHERE id=?", [id]);
@@ -73,23 +86,27 @@ export async function getRecipe(req, res) {
   if (result[0].length === 1) {
     res.status(200).json(result[0][0]);
   } else {
-    res.status(404).json({ message: "No recipe found with that ID" });
+    const err = new Error();
+    err.response = { message: "No recipe found with that ID" };
+    err.statusCode = 404;
+
+    next(err);
   }
 }
 
-export async function deleteRecipe(req, res) {
+export async function deleteRecipe(req, res, next) {
   const { id: private_id } = req.params;
 
   try {
     await pool.query("DELETE FROM recipe WHERE private_id=?", [private_id]);
 
     res.status(200).json({ message: "Deleted successfully", success: true });
-  } catch (error) {
-    res.status(500).json({ message: "Something went wrong.", success: false });
+  } catch {
+    next(new Error());
   }
 }
 
-export async function updateRecipe(req, res) {
+export async function updateRecipe(req, res, next) {
   const { id } = req.params;
   const { recipeName, imageLink, recipeIngredients, recipeDescription } =
     req.query;
@@ -102,6 +119,6 @@ export async function updateRecipe(req, res) {
 
     res.status(200).json({ message: "Update success", success: true });
   } catch (error) {
-    res.status(500).json({ message: "Something went wrong.", success: false });
+    next(new Error());
   }
 }
