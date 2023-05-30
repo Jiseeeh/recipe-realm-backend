@@ -1,6 +1,6 @@
 import { pool } from "../services/database";
 
-export async function getRecipes(req, res) {
+export async function getRecipes(req, res, next) {
   // check if user is really an admin
   const { id, username: name } = req.query;
 
@@ -12,68 +12,84 @@ export async function getRecipes(req, res) {
   const result = user[0];
 
   if (result.length === 0) {
-    res.status(404).json({ message: "Invalid Request", clearCache: true });
-    return;
+    const err = new Error();
+
+    err.response = { message: "Invalid Request", clearCache: true };
+    err.statusCode = 404;
+
+    next(err);
   }
 
   const isAdmin = !!user[0][0].is_admin;
 
   if (!isAdmin) {
-    res.status(403).json({
+    const err = new Error();
+
+    err.response = {
       message: "You are not allowed to access this resource",
-      success: false,
-    });
+    };
+    err.statusCode = 403;
+
+    next(err);
   } else {
     const result = await pool.query("SELECT * FROM recipe");
-
     const recipes = result[0];
+    const err = new Error();
 
     if (recipes.length >= 1) {
       res.status(200).json(recipes);
     } else {
-      res.status(404).json({ message: "No recipes found!" });
+      err.response = { message: "No recipes found!" };
+      err.statusCode = 404;
+
+      next(err);
     }
   }
 }
 
-export async function approveRecipe(req, res) {
+export async function approveRecipe(req, res, next) {
   const { id } = req.params;
 
   try {
     await pool.query("UPDATE recipe SET is_pending = FALSE WHERE id=?", [id]);
 
     res.status(200).json({ message: "Approved!", success: true });
-  } catch (error) {
-    res.status(500).json({ message: "Something went wrong", success: false });
+  } catch {
+    // re throw
+    next(new Error());
   }
 }
 
-export async function disapproveRecipe(req, res) {
+export async function disapproveRecipe(req, res, next) {
   const { id } = req.params;
 
   try {
     await pool.query("UPDATE recipe SET is_pending = TRUE WHERE id=?", [id]);
 
     res.status(200).json({ message: "Success!", success: true });
-  } catch (error) {
-    res.status(500).json({ message: "Something went wrong", success: false });
+  } catch {
+    // re throw
+    next(new Error());
   }
 }
 
-export async function deleteRecipe(req, res) {
+export async function deleteRecipe(req, res, next) {
   const { id } = req.params;
 
   const result = await pool.query("DELETE FROM recipe WHERE id=?", [id]);
 
   if (result[0].affectedRows === 1)
     res.status(200).json({ message: "Delete success!", success: true });
-  else
-    res
-      .status(404)
-      .json({ message: "No recipe found with that id", success: false });
+  else {
+    const err = new Error();
+    err.response = { message: "No recipe found with that id" };
+    err.statusCode = 404;
+
+    next(err);
+  }
 }
 
-export async function bulkApprove(req, res) {
+export async function bulkApprove(req, res, next) {
   let { ids } = req.query;
 
   ids = JSON.parse(ids);
@@ -84,12 +100,13 @@ export async function bulkApprove(req, res) {
     }
 
     res.status(200).json({ message: "Approved!", success: true });
-  } catch (error) {
-    res.status(500).json({ message: "Something went wrong", success: false });
+  } catch {
+    // re throw
+    next(new Error());
   }
 }
 
-export async function bulkDisapprove(req, res) {
+export async function bulkDisapprove(req, res, next) {
   let { ids } = req.query;
 
   ids = JSON.parse(ids);
@@ -100,12 +117,13 @@ export async function bulkDisapprove(req, res) {
     }
 
     res.status(200).json({ message: "Success!", success: true });
-  } catch (error) {
-    res.status(500).json({ message: "Something went wrong", success: false });
+  } catch {
+    // re throw
+    next(new Error());
   }
 }
 
-export async function bulkDelete(req, res) {
+export async function bulkDelete(req, res, next) {
   let { ids } = req.query;
 
   ids = JSON.parse(ids);
@@ -116,7 +134,8 @@ export async function bulkDelete(req, res) {
     }
 
     res.status(200).json({ message: "Delete success!", success: true });
-  } catch (error) {
-    res.status(500).json({ message: "Something went wrong", success: false });
+  } catch {
+    // re throw
+    next(new Error());
   }
 }
