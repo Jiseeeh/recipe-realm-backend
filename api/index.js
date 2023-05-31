@@ -2,12 +2,12 @@ import express from "express";
 import dotenv from "dotenv";
 import { v4 } from "uuid";
 
-import { pool } from "./services/database";
 import { migrations } from "./services/migrations/migrations";
+import { errorHandler, noRouteFoundHandler } from "./middleware/errorHandler";
+import { sqlQuery } from "./services/database";
 import user from "./routes/user";
 import recipe from "./routes/recipe";
 import admin from "./routes/admin";
-import { errorHandler, noRouteFoundHandler } from "./middleware/errorHandler";
 
 const app = express();
 dotenv.config();
@@ -19,12 +19,15 @@ app.use(admin);
 app.get("/api", async (req, res) => {
   try {
     for (const migration of migrations) {
-      await pool.query(migration);
+      await sqlQuery(migration);
     }
 
     res.json({ message: "Success!" });
   } catch (error) {
-    res.json({ message: "Oh no something went wrong", error });
+    res.json({
+      message: "Oh no something went wrong",
+      error: process.env.NODE_ENV === "development" ? error : "",
+    });
   }
 });
 
