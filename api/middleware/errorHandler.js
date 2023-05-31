@@ -1,12 +1,16 @@
 export function errorHandler(err, req, res, next) {
   const status = err.statusCode || 500;
-  const response = err.response || "Something went wrong with the server";
+  const response = err.response || {
+    message: "Something went wrong with the server",
+  };
+  const cause = err.cause;
 
   res.status(status).json({
     success: false,
     status,
     ...response,
     stack: process.env.NODE_ENV === "development" ? err.stack : {},
+    cause: process.env.NODE_ENV === "development" ? cause : "",
   });
 }
 
