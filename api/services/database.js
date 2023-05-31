@@ -1,31 +1,34 @@
-import mysql from "mysql2";
-import fs from "fs";
-import path from "path";
+import sql from "mssql";
 
-const pool = mysql
-  .createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT,
-  })
-  .promise();
+const sqlConfig = {
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  server: process.env.DB_SERVER,
+  pool: {
+    max: 10,
+    min: 0,
+    idleTimeoutMillis: 30000,
+  },
+  options: {
+    trustServerCertificate: true, // change to true for local dev / self-signed certs
+  },
+};
 
-async function init() {
+export async function sqlQuery(query) {
   try {
-    const migrationDir = path.join(__dirname, "migrations");
-    const migrationsFiles = fs.readdirSync(migrationDir).reverse();
+    await sql.connect(sqlConfig);
 
-    for (const file of migrationsFiles) {
-      const sql = fs.readFileSync(path.join(migrationDir, file), "utf-8");
-      await pool.query(sql);
-      console.log("Migrate Success!");
-    }
-  } catch (error) {
-    // re throw for error handler in index.js
-    throw error;
+    console.log({ query });
+    const result = await sql.query(query);
+
+    return result.recordset;
+  } catch (err) {
+    // re throw
+    console.log({ err });
+
+    throw err;
+  } finally {
+    sql.close();
   }
 }
-
-export { pool, init };
