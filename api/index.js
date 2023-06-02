@@ -34,6 +34,10 @@ app.get("/api", async (req, res) => {
 });
 
 app.get("/api/seed", async (req, res, next) => {
+  if (req.query.secret !== process.env.SECRET) {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+
   try {
     for (const seed of seeds) {
       await sqlQuery(seed);
