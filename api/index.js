@@ -1,7 +1,5 @@
 import express from "express";
 import dotenv from "dotenv";
-import sql from "mssql";
-import { v4 } from "uuid";
 
 import { migrations } from "./services/migrations/migrations";
 import { seeds } from "./services/seed/seed";
