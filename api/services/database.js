@@ -15,12 +15,14 @@ const sqlConfig = {
   },
 };
 
-export async function sqlQuery(query) {
+export async function sqlQuery(query, returnRaw = false) {
   try {
     await sql.connect(sqlConfig);
 
     console.log({ query });
     const result = await sql.query(query);
+
+    if (returnRaw) return result;
 
     return result.recordset;
   } catch (err) {
