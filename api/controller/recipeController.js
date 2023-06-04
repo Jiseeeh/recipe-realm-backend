@@ -1,6 +1,7 @@
 import { v4 } from "uuid";
 
-import { pool } from "../services/database";
+import { sqlQuery } from "../services/database";
+import preserve from "../helper/preserve";
 
 export async function createRecipe(req, res, next) {
   const {
@@ -15,18 +16,10 @@ export async function createRecipe(req, res, next) {
   try {
     const uuid = v4();
 
-    await pool.query(
-      `
-    INSERT INTO recipe (private_id,name,author_id,author_name,image_link,description,ingredients) VALUES(?,?,?,?,?,?,?)`,
-      [
-        uuid,
-        recipeName,
-        authorId,
-        authorName,
-        imageLink,
-        recipeDescription,
-        recipeIngredients,
-      ]
+    await sqlQuery(
+      `INSERT INTO recipe (private_id,name,author_id,author_name,image_link,description,ingredients) VALUES ('${uuid}','${recipeName}',${authorId},'${authorName}','${imageLink}','${preserve.encodeNewLineAndQuote(
+        recipeDescription
+      )}','${preserve.encodeNewLineAndQuote(recipeIngredients)}')`
     );
 
     res.status(201).json({ uuid, success: true });
@@ -34,19 +27,22 @@ export async function createRecipe(req, res, next) {
     // re throw
     const err = new Error();
     err.response = { message: "Something went wrong", clearCache: true };
+    err.cause = error;
 
     next(err);
   }
 }
 
 export async function getRecipes(req, res, next) {
-  const result = await pool.query(
-    "SELECT * FROM recipe WHERE is_pending = FALSE"
-  );
+  const result = await sqlQuery("SELECT * FROM recipe WHERE is_pending = 0");
 
-  const recipes = result[0];
+  if (result.length >= 1) {
+    const recipes = result.map((recipe) => ({
+      ...recipe,
+      description: preserve.decodeNewLineAndQuote(recipe.description),
+      ingredients: preserve.decodeNewLineAndQuote(recipe.ingredients),
+    }));
 
-  if (recipes.length >= 1) {
     res.status(200).json(recipes);
   } else {
     const err = new Error();
@@ -60,14 +56,17 @@ export async function getRecipes(req, res, next) {
 export async function getRecipesByUser(req, res, next) {
   const { id, username: name } = req.params;
 
-  const result = await pool.query(
-    "SELECT * FROM recipe WHERE author_id=? AND author_name=?",
-    [id, name]
+  const result = await sqlQuery(
+    `SELECT * FROM recipe WHERE author_id=${id} AND author_name='${name}'`
   );
 
-  const recipes = result[0];
+  if (result.length >= 1) {
+    const recipes = result.map((recipe) => ({
+      ...recipe,
+      description: preserve.decodeNewLineAndQuote(recipe.description),
+      ingredients: preserve.decodeNewLineAndQuote(recipe.ingredients),
+    }));
 
-  if (recipes.length >= 1) {
     res.status(200).json(recipes);
   } else {
     const err = new Error();
@@ -81,10 +80,16 @@ export async function getRecipesByUser(req, res, next) {
 export async function getRecipe(req, res, next) {
   const { id } = req.params;
 
-  const result = await pool.query("SELECT * FROM recipe WHERE id=?", [id]);
+  const result = await sqlQuery(`SELECT * FROM recipe WHERE id=${id}`);
 
-  if (result[0].length === 1) {
-    res.status(200).json(result[0][0]);
+  if (result.length === 1) {
+    const recipe = {
+      ...result[0],
+      description: preserve.decodeNewLineAndQuote(result[0].description),
+      ingredients: preserve.decodeNewLineAndQuote(result[0].ingredients),
+    };
+
+    res.status(200).json(recipe);
   } else {
     const err = new Error();
     err.response = { message: "No recipe found with that ID" };
@@ -97,13 +102,20 @@ export async function getRecipe(req, res, next) {
 export async function deleteRecipe(req, res, next) {
   const { id: private_id } = req.params;
 
-  try {
-    await pool.query("DELETE FROM recipe WHERE private_id=?", [private_id]);
+  const result = await sqlQuery(
+    `DELETE FROM recipe WHERE private_id='${private_id}'`,
+    true
+  );
 
-    res.status(200).json({ message: "Deleted successfully", success: true });
-  } catch {
-    next(new Error());
+  if (result.rowsAffected[0] === 0) {
+    const err = new Error();
+    err.response = { message: "No recipe was found with that id." };
+    err.statusCode = 400;
+    next(err);
+    return;
   }
+
+  res.status(200).json({ message: "Deleted successfully", success: true });
 }
 
 export async function updateRecipe(req, res, next) {
@@ -111,14 +123,22 @@ export async function updateRecipe(req, res, next) {
   const { recipeName, imageLink, recipeIngredients, recipeDescription } =
     req.query;
 
-  try {
-    const result = await pool.query(
-      "UPDATE recipe SET name=?,image_link=?,ingredients=?,description=? WHERE id=?",
-      [recipeName, imageLink, recipeIngredients, recipeDescription, id]
-    );
+  const result = await sqlQuery(
+    `UPDATE recipe SET name='${recipeName}',image_link='${imageLink}',ingredients='${preserve.encodeNewLineAndQuote(
+      recipeIngredients
+    )}',description='${preserve.encodeNewLineAndQuote(
+      recipeDescription
+    )}' WHERE id=${id}`,
+    true
+  );
 
-    res.status(200).json({ message: "Update success", success: true });
-  } catch (error) {
-    next(new Error());
+  if (result.rowsAffected[0] === 0) {
+    const err = new Error();
+    err.response = { message: "No recipe was found with that id." };
+    err.statusCode = 400;
+    next(err);
+    return;
   }
+
+  res.status(200).json({ message: "Update success", success: true, result });
 }

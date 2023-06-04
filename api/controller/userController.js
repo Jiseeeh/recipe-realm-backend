@@ -1,22 +1,21 @@
-import { pool } from "../services/database";
+import { sqlQuery } from "../services/database";
 
+// TODO: add bcrypt
 export async function createUser(req, res, next) {
   const { username, password } = req.query;
 
   try {
-    const result = await pool.query(
-      "INSERT INTO user (name,password) VALUES (?,?)",
-      [username, password]
+    const result = await sqlQuery(
+      `INSERT INTO users (name,password) VALUES ('${username}','${password}')`
     );
 
     res.status(200).json({
       message: "Sign up success!",
-      id: result[0].insertId,
-      username,
+      // username,
       success: true,
     });
   } catch (error) {
-    if (error.code === "ER_DUP_ENTRY") {
+    if (error.code === "EREQUEST") {
       const err = new Error();
       err.response = { message: "Name is already taken." };
       err.statusCode = 409;
@@ -37,16 +36,15 @@ export async function checkUser(req, res, next) {
   const err = new Error();
 
   try {
-    const result = await pool.query(
-      "SELECT id,name,is_admin FROM user WHERE name=? AND password=?",
-      [username, password]
+    const result = await sqlQuery(
+      `SELECT id,name,is_admin FROM users WHERE name='${username}' AND password='${password}'`
     );
 
     // has match
-    if (result[0].length >= 1)
+    if (result.length >= 1)
       res.status(200).json({
         message: "Login Success!",
-        result: result[0][0],
+        result: { ...result[0] },
         success: true,
       });
     else {
