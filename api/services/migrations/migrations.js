@@ -2,7 +2,7 @@ export const migrations = [
   `CREATE TABLE users(
     id INT IDENTITY,
     name VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(50) NOT NULL,
+    password TEXT NOT NULL,
     is_admin BIT NOT NULL DEFAULT 0,
     PRIMARY KEY(id)
 );`,
