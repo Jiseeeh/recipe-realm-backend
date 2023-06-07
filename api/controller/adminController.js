@@ -1,4 +1,5 @@
 import { sqlQuery } from "../services/database";
+import preserve from "../helper/preserve";
 
 export async function getRecipes(req, res, next) {
   const { id, username: name } = req.query;
@@ -38,7 +39,13 @@ export async function getRecipes(req, res, next) {
   const err = new Error();
 
   if (recipes.length >= 1) {
-    res.status(200).json(recipes);
+    const decodedRecipes = recipes.map((recipe) => ({
+      ...recipe,
+      description: preserve.decodeNewLineAndQuote(recipe.description),
+      ingredients: preserve.decodeNewLineAndQuote(recipe.ingredients),
+    }));
+
+    res.status(200).json(decodedRecipes);
   } else {
     err.response = { message: "No recipes found!" };
     err.statusCode = 404;
