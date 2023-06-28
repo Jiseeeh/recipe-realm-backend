@@ -7,6 +7,8 @@ import {
   getRecipe,
   deleteRecipe,
   updateRecipe,
+  likeRecipe,
+  getRecipeLikes,
 } from "../controller/recipeController";
 
 const app = express();
@@ -19,5 +21,8 @@ app
   .delete(deleteRecipe);
 
 app.route("/api/recipe/:id/:username").get(getRecipesByUser);
+
+// recipe likes
+app.route("/api/recipe-likes").get(getRecipeLikes).post(likeRecipe);
 
 module.exports = app;
