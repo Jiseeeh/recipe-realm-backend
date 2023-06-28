@@ -27,6 +27,7 @@ export async function getRecipes(req, res, next) {
 
     err.response = {
       message: "You are not allowed to access this resource",
+      clearCache: true,
     };
     err.statusCode = 403;
 
