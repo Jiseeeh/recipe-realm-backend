@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import moment from "moment";
 
 import { pool } from "../services/database";
 
@@ -120,5 +121,84 @@ export async function updateRecipe(req, res, next) {
     res.status(200).json({ message: "Update success", success: true });
   } catch (error) {
     next(new Error());
+  }
+}
+
+/**
+ * The `likeRecipe` function allows a user to like a recipe, updating the likes count and checking if
+ * the user has already liked the recipe within a 24-hour period.
+ */
+export async function likeRecipe(req, res, next) {
+  const { recipeId, userId } = req.query;
+
+  try {
+    // check existing like between the user and the recipe
+    const result = await pool.query(
+      "SELECT next_increment FROM likes WHERE user_id = ? AND recipe_id = ?",
+      [userId, recipeId]
+    );
+    const nextAllowedIncrement = result[0][0]?.next_increment;
+
+    const next_increment = moment().add(1, "d").format("YYYY-MM-DD hh:mm:ss");
+
+    // means recipe currently has no likes
+    if (!nextAllowedIncrement) {
+      // create new  likes row
+      await pool.query(
+        "INSERT INTO likes (user_id,recipe_id,next_increment) VALUES(?,?,?)",
+        [userId, recipeId, next_increment]
+      );
+
+      // update likes count
+      await pool.query(
+        "UPDATE recipe SET likes_count = likes_count + 1 WHERE id = ?",
+        [recipeId]
+      );
+
+      res.json({ message: "Successfully liked!", success: true });
+      return;
+    }
+
+    // allow like if date.now is after the next allowed increment.
+    if (moment().isAfter(moment(nextAllowedIncrement))) {
+      // increment likes_count
+      await pool.query(
+        "UPDATE recipe SET likes_count = likes_count + 1 WHERE id = ?",
+        [recipeId]
+      );
+
+      // update next allowed increment
+      await pool.query(
+        "UPDATE likes SET next_increment = ? WHERE user_id = ? AND recipe_id = ?",
+        [next_increment, userId, recipeId]
+      );
+
+      res.json({ message: "Successfully liked!", success: true });
+    } else {
+      res.json({
+        message: "You have already given your like for this day.",
+        success: false,
+      });
+    }
+  } catch {
+    next(new Error());
+  }
+}
+
+export async function getRecipeLikes(req, res, next) {
+  const { recipeId } = req.query;
+
+  try {
+    const result = await pool.query(
+      "SELECT likes_count FROM recipe WHERE id = ?",
+      [Number(recipeId)]
+    );
+    res.json(result[0][0].likes_count);
+  } catch (error) {
+    const err = new Error();
+    err.response = { message: "No recipe found with that ID.", success: false };
+    err.statusCode = 404;
+
+    next(err);
   }
 }
