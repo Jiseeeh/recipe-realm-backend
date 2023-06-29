@@ -186,15 +186,41 @@ export async function likeRecipe(req, res, next) {
 }
 
 export async function getRecipeLikes(req, res, next) {
-  const { recipeId } = req.query;
+  const { recipeId, userId } = req.query;
+  let likes_count = null;
 
   try {
     const result = await pool.query(
       "SELECT likes_count FROM recipe WHERE id = ?",
       [Number(recipeId)]
     );
-    res.json(result[0][0].likes_count);
+
+    likes_count = result[0][0].likes_count;
+
+    const getNextAllowedIncrementResult = await pool.query(
+      "SELECT next_increment FROM likes WHERE recipe_id = ? AND user_id = ?",
+      [recipeId, userId]
+    );
+    const next_increment = getNextAllowedIncrementResult[0][0]?.next_increment;
+
+    if (!next_increment) {
+      const err = new Error();
+      err.code = "NYL"; // not yet liked hehe
+      throw err;
+    }
+
+    // send isLiked to determine if like button is filled or not
+    if (moment().isAfter(moment(next_increment))) {
+      res.json({ likes_count, isLiked: false });
+    } else {
+      res.json({ likes_count, isLiked: true });
+    }
   } catch (error) {
+    if (error.code === "NYL") {
+      res.json({ likes_count });
+      return;
+    }
+
     const err = new Error();
     err.response = { message: "No recipe found with that ID.", success: false };
     err.statusCode = 404;
