@@ -19,4 +19,14 @@ export const migrations = [
     PRIMARY KEY(id),
     FOREIGN KEY(author_id) REFERENCES users(id)
   );`,
+  `CREATE TABLE likes (
+    id INT IDENTITY,
+    user_id INT NOT NULL,
+    recipe_id INT NOT NULL,
+    next_increment DATETIME NOT NULL,
+    PRIMARY KEY(id),
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    FOREIGN KEY(recipe_id) REFERENCES recipe(id)
+);`,
+  `ALTER TABLE recipe ADD likes_count INT NOT NULL DEFAULT 0`,
 ];
