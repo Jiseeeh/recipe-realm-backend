@@ -4,47 +4,58 @@ export async function getRecipes(req, res, next) {
   // check if user is really an admin
   const { id, username: name } = req.query;
 
-  const user = await pool.query(
-    "SELECT is_admin FROM user WHERE id=? AND name=?",
-    [id, name]
-  );
+  try {
+    const user = await pool.query(
+      "SELECT is_admin FROM user WHERE id=? AND name=?",
+      [id, name]
+    );
 
-  const result = user[0];
+    const result = user[0];
 
-  if (result.length === 0) {
-    const err = new Error();
+    if (result.length === 0) {
+      const err = new Error();
 
-    err.response = { message: "Invalid Request", clearCache: true };
-    err.statusCode = 404;
-
-    next(err);
-  }
-
-  const isAdmin = !!user[0][0].is_admin;
-
-  if (!isAdmin) {
-    const err = new Error();
-
-    err.response = {
-      message: "You are not allowed to access this resource",
-      clearCache: true,
-    };
-    err.statusCode = 403;
-
-    next(err);
-  } else {
-    const result = await pool.query("SELECT * FROM recipe");
-    const recipes = result[0];
-    const err = new Error();
-
-    if (recipes.length >= 1) {
-      res.status(200).json(recipes);
-    } else {
-      err.response = { message: "No recipes found!" };
+      err.response = { message: "Invalid Request", clearCache: true };
       err.statusCode = 404;
 
       next(err);
     }
+
+    const isAdmin = !!user[0][0].is_admin;
+
+    if (!isAdmin) {
+      const err = new Error();
+
+      err.response = {
+        message: "You are not allowed to access this resource",
+        clearCache: true,
+      };
+      err.statusCode = 403;
+
+      next(err);
+    } else {
+      const result = await pool.query("SELECT * FROM recipe");
+      const recipes = result[0];
+      const err = new Error();
+
+      if (recipes.length >= 1) {
+        res.status(200).json(recipes);
+      } else {
+        err.response = { message: "No recipes found!" };
+        err.statusCode = 404;
+
+        next(err);
+      }
+    }
+  } catch (error) {
+    // re throw
+    const err = new Error();
+    err.response = {
+      message: "Server is down at the moment.",
+      clearCache: true,
+    };
+
+    next(err);
   }
 }
 

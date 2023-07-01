@@ -41,18 +41,29 @@ export async function createRecipe(req, res, next) {
 }
 
 export async function getRecipes(req, res, next) {
-  const result = await pool.query(
-    "SELECT * FROM recipe WHERE is_pending = FALSE"
-  );
+  try {
+    const result = await pool.query(
+      "SELECT * FROM recipe WHERE is_pending = FALSE"
+    );
 
-  const recipes = result[0];
+    const recipes = result[0];
 
-  if (recipes.length >= 1) {
-    res.status(200).json(recipes);
-  } else {
+    if (recipes.length >= 1) {
+      res.status(200).json(recipes);
+    } else {
+      const err = new Error();
+      err.response = { message: "No recipes found!" };
+      err.statusCode = 404;
+
+      next(err);
+    }
+  } catch {
+    // re throw
     const err = new Error();
-    err.response = { message: "No recipes found!" };
-    err.statusCode = 404;
+    err.response = {
+      message: "Server is down at the moment.",
+      clearCache: true,
+    };
 
     next(err);
   }
@@ -61,19 +72,30 @@ export async function getRecipes(req, res, next) {
 export async function getRecipesByUser(req, res, next) {
   const { id, username: name } = req.params;
 
-  const result = await pool.query(
-    "SELECT * FROM recipe WHERE author_id=? AND author_name=?",
-    [id, name]
-  );
+  try {
+    const result = await pool.query(
+      "SELECT * FROM recipe WHERE author_id=? AND author_name=?",
+      [id, name]
+    );
 
-  const recipes = result[0];
+    const recipes = result[0];
 
-  if (recipes.length >= 1) {
-    res.status(200).json(recipes);
-  } else {
+    if (recipes.length >= 1) {
+      res.status(200).json(recipes);
+    } else {
+      const err = new Error();
+      err.response = { message: "No recipes found!" };
+      err.statusCode = 404;
+
+      next(err);
+    }
+  } catch {
+    // re throw
     const err = new Error();
-    err.response = { message: "No recipes found!" };
-    err.statusCode = 404;
+    err.response = {
+      message: "Server is down at the moment.",
+      clearCache: true,
+    };
 
     next(err);
   }
