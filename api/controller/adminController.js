@@ -3,52 +3,61 @@ import preserve from "../helper/preserve";
 
 export async function getRecipes(req, res, next) {
   const { id, username: name } = req.query;
+  try {
+    // check if user is really an admin
+    const user = await sqlQuery(
+      `SELECT is_admin FROM users WHERE id=${id} AND name='${name}'`
+    );
 
-  // check if user is really an admin
-  const user = await sqlQuery(
-    `SELECT is_admin FROM users WHERE id=${id} AND name='${name}'`
-  );
+    const result = user[0];
 
-  const result = user[0];
+    if (!result) {
+      const err = new Error();
 
-  if (!result) {
+      err.response = { message: "Invalid Request", clearCache: true };
+      err.statusCode = 404;
+
+      next(err);
+      return;
+    }
+
+    const isAdmin = result.is_admin;
+
+    if (!isAdmin) {
+      const err = new Error();
+
+      err.response = {
+        message: "You are not allowed to access this resource",
+      };
+      err.statusCode = 403;
+
+      next(err);
+      return;
+    }
+
+    const recipes = await sqlQuery("SELECT * FROM recipe");
     const err = new Error();
 
-    err.response = { message: "Invalid Request", clearCache: true };
-    err.statusCode = 404;
+    if (recipes.length >= 1) {
+      const decodedRecipes = recipes.map((recipe) => ({
+        ...recipe,
+        description: preserve.decodeNewLineAndQuote(recipe.description),
+        ingredients: preserve.decodeNewLineAndQuote(recipe.ingredients),
+      }));
 
-    next(err);
-    return;
-  }
+      res.status(200).json(decodedRecipes);
+    } else {
+      err.response = { message: "No recipes found!" };
+      err.statusCode = 404;
 
-  const isAdmin = result.is_admin;
-
-  if (!isAdmin) {
+      next(err);
+    }
+  } catch {
     const err = new Error();
-
     err.response = {
-      message: "You are not allowed to access this resource",
+      message: "Server is down at the moment.",
+      clearCache: true,
     };
-    err.statusCode = 403;
-
-    next(err);
-    return;
-  }
-
-  const recipes = await sqlQuery("SELECT * FROM recipe");
-  const err = new Error();
-
-  if (recipes.length >= 1) {
-    const decodedRecipes = recipes.map((recipe) => ({
-      ...recipe,
-      description: preserve.decodeNewLineAndQuote(recipe.description),
-      ingredients: preserve.decodeNewLineAndQuote(recipe.ingredients),
-    }));
-
-    res.status(200).json(decodedRecipes);
-  } else {
-    err.response = { message: "No recipes found!" };
-    err.statusCode = 404;
 
     next(err);
   }

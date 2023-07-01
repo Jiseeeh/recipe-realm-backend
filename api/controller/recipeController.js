@@ -34,20 +34,30 @@ export async function createRecipe(req, res, next) {
 }
 
 export async function getRecipes(req, res, next) {
-  const result = await sqlQuery("SELECT * FROM recipe WHERE is_pending = 0");
+  try {
+    const result = await sqlQuery("SELECT * FROM recipe WHERE is_pending = 0");
 
-  if (result.length >= 1) {
-    const recipes = result.map((recipe) => ({
-      ...recipe,
-      description: preserve.decodeNewLineAndQuote(recipe.description),
-      ingredients: preserve.decodeNewLineAndQuote(recipe.ingredients),
-    }));
+    if (result.length >= 1) {
+      const recipes = result.map((recipe) => ({
+        ...recipe,
+        description: preserve.decodeNewLineAndQuote(recipe.description),
+        ingredients: preserve.decodeNewLineAndQuote(recipe.ingredients),
+      }));
 
-    res.status(200).json(recipes);
-  } else {
+      res.status(200).json(recipes);
+    } else {
+      const err = new Error();
+      err.response = { message: "No recipes found!" };
+      err.statusCode = 404;
+
+      next(err);
+    }
+  } catch (error) {
     const err = new Error();
-    err.response = { message: "No recipes found!" };
-    err.statusCode = 404;
+    err.response = {
+      message: "Server is down at the moment.",
+      clearCache: true,
+    };
 
     next(err);
   }
@@ -56,22 +66,32 @@ export async function getRecipes(req, res, next) {
 export async function getRecipesByUser(req, res, next) {
   const { id, username: name } = req.params;
 
-  const result = await sqlQuery(
-    `SELECT * FROM recipe WHERE author_id=${id} AND author_name='${name}'`
-  );
+  try {
+    const result = await sqlQuery(
+      `SELECT * FROM recipe WHERE author_id=${id} AND author_name='${name}'`
+    );
 
-  if (result.length >= 1) {
-    const recipes = result.map((recipe) => ({
-      ...recipe,
-      description: preserve.decodeNewLineAndQuote(recipe.description),
-      ingredients: preserve.decodeNewLineAndQuote(recipe.ingredients),
-    }));
+    if (result.length >= 1) {
+      const recipes = result.map((recipe) => ({
+        ...recipe,
+        description: preserve.decodeNewLineAndQuote(recipe.description),
+        ingredients: preserve.decodeNewLineAndQuote(recipe.ingredients),
+      }));
 
-    res.status(200).json(recipes);
-  } else {
+      res.status(200).json(recipes);
+    } else {
+      const err = new Error();
+      err.response = { message: "No recipes found!" };
+      err.statusCode = 404;
+
+      next(err);
+    }
+  } catch {
     const err = new Error();
-    err.response = { message: "No recipes found!" };
-    err.statusCode = 404;
+    err.response = {
+      message: "Server is down at the moment.",
+      clearCache: true,
+    };
 
     next(err);
   }
