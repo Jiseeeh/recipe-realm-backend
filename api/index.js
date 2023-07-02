@@ -29,6 +29,15 @@ app.get("/api", async (req, res) => {
 });
 
 app.get("/api/seed", async (req, res, next) => {
+  const { secret } = req.query;
+
+  if (secret !== process.env.SECRET) {
+    res
+      .status(401)
+      .json({ message: "You are not allowed to access this route." });
+    return;
+  }
+
   const recipes = [
     {
       name: "Special Bicol Express",
