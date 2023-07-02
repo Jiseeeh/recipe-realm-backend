@@ -177,7 +177,7 @@ export async function likeRecipe(req, res, next) {
         [recipeId]
       );
 
-      res.json({ message: "Successfully liked!", success: true });
+      res.status(200).json({ message: "Successfully liked!", success: true });
       return;
     }
 
@@ -195,9 +195,9 @@ export async function likeRecipe(req, res, next) {
         [next_increment, userId, recipeId]
       );
 
-      res.json({ message: "Successfully liked!", success: true });
+      res.status(200).json({ message: "Successfully liked!", success: true });
     } else {
-      res.json({
+      res.status(409).json({
         message: "You have already given your like for this day.",
         success: false,
       });
@@ -239,9 +239,9 @@ export async function getRecipeLikes(req, res, next) {
 
     // send isLiked to determine if like button is filled or not
     if (moment().isAfter(moment(next_increment))) {
-      res.json({ likes_count, isLiked: false });
+      res.status(200).json({ likes_count, isLiked: false });
     } else {
-      res.json({ likes_count, isLiked: true });
+      res.status(200).json({ likes_count, isLiked: true });
     }
   } catch (error) {
     if (error.code === "NYL") {
