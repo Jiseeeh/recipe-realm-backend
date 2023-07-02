@@ -203,7 +203,13 @@ export async function likeRecipe(req, res, next) {
       });
     }
   } catch {
-    next(new Error());
+    const err = new Error();
+    err.response = {
+      message: "Server is down at the moment.",
+      clearCache: true,
+    };
+
+    next(err);
   }
 }
 
@@ -246,6 +252,61 @@ export async function getRecipeLikes(req, res, next) {
     const err = new Error();
     err.response = { message: "No recipe found with that ID.", success: false };
     err.statusCode = 404;
+
+    next(err);
+  }
+}
+
+export async function dislikeRecipe(req, res, next) {
+  const { recipeId, userId } = req.query;
+
+  try {
+    const result = await pool.query(
+      "SELECT next_increment FROM likes WHERE recipe_id = ? AND user_id = ?",
+      [recipeId, userId]
+    );
+
+    const nextAllowedIncrement = result[0][0]?.next_increment;
+
+    // if haven't liked the recipe
+    if (!nextAllowedIncrement) {
+      await pool.query(
+        "UPDATE recipe SET likes_count = likes_count - 1 WHERE id = ?",
+        [recipeId]
+      );
+
+      await pool.query(
+        "INSERT INTO likes (user_id,recipe_id,next_increment) VALUES(?,?,?)",
+        [userId, recipeId, moment().format("YYYY-MM-DD hh:mm:ss")]
+      );
+
+      res.status(200).json({ message: "Successfully Disliked", success: true });
+      return;
+    }
+
+    // only allow dislike if user liked the recipe.
+    if (moment().isBefore(moment(nextAllowedIncrement))) {
+      await pool.query(
+        "UPDATE recipe SET likes_count = likes_count - 1 WHERE id = ?",
+        [recipeId]
+      );
+
+      // update next allowed inc
+      await pool.query(
+        "UPDATE likes SET next_increment = ? WHERE recipe_id = ? AND user_id = ?",
+        [moment().format("YYYY-MM-DD hh:mm:ss"), recipeId, userId]
+      );
+
+      res.status(200).json({ message: "Successfully Disliked", success: true });
+    } else {
+      res.status(409).json({
+        message: "You already disliked this recipe.",
+        success: false,
+      });
+    }
+  } catch (error) {
+    const err = new Error();
+    err.response = { message: "Server is down at the moment" };
 
     next(err);
   }
