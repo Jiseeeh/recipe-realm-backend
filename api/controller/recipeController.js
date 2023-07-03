@@ -267,6 +267,7 @@ export async function dislikeRecipe(req, res, next) {
     );
 
     const nextAllowedIncrement = result[0][0]?.next_increment;
+    const now = moment().format("YYYY-MM-DD hh:mm:ss");
 
     // if haven't liked the recipe
     if (!nextAllowedIncrement) {
@@ -277,7 +278,7 @@ export async function dislikeRecipe(req, res, next) {
 
       await pool.query(
         "INSERT INTO likes (user_id,recipe_id,next_increment) VALUES(?,?,?)",
-        [userId, recipeId, moment().format("YYYY-MM-DD hh:mm:ss")]
+        [userId, recipeId, now]
       );
 
       res.status(200).json({ message: "Successfully Disliked", success: true });
@@ -294,7 +295,7 @@ export async function dislikeRecipe(req, res, next) {
       // update next allowed inc
       await pool.query(
         "UPDATE likes SET next_increment = ? WHERE recipe_id = ? AND user_id = ?",
-        [moment().format("YYYY-MM-DD hh:mm:ss"), recipeId, userId]
+        [now, recipeId, userId]
       );
 
       res.status(200).json({ message: "Successfully Disliked", success: true });
