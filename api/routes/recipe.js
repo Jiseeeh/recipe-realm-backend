@@ -9,6 +9,7 @@ import {
   updateRecipe,
   likeRecipe,
   getRecipeLikes,
+  dislikeRecipe,
 } from "../controller/recipeController";
 
 const app = express();
@@ -23,6 +24,11 @@ app
 app.route("/api/recipe/:id/:username").get(getRecipesByUser);
 
 // recipe likes
-app.route("/api/recipe-likes").get(getRecipeLikes).post(likeRecipe);
+// recipe likes
+app
+  .route("/api/recipe-likes")
+  .get(getRecipeLikes)
+  .post(likeRecipe)
+  .patch(dislikeRecipe);
 
 module.exports = app;
