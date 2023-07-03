@@ -262,3 +262,54 @@ export async function getRecipeLikes(req, res, next) {
     next(err);
   }
 }
+
+export async function dislikeRecipe(req, res, next) {
+  const { recipeId, userId } = req.query;
+
+  try {
+    const result = await sqlQuery(
+      `SELECT next_increment FROM likes WHERE recipe_id = '${recipeId}' AND user_id = '${userId}'`
+    );
+
+    const nextAllowedIncrement = result[0]?.next_increment;
+    const now = moment().format("YYYY-MM-DD hh:mm:ss");
+
+    // if haven't liked the recipe
+    if (!nextAllowedIncrement) {
+      await sqlQuery(
+        `UPDATE recipe SET likes_count = likes_count - 1 WHERE id = '${recipeId}'`
+      );
+
+      await sqlQuery(
+        `INSERT INTO likes (user_id,recipe_id,next_increment) VALUES('${userId}','${recipeId}','${now}')`
+      );
+
+      res.status(200).json({ message: "Successfully Disliked", success: true });
+      return;
+    }
+
+    // only allow dislike if user liked the recipe.
+    if (moment().isBefore(moment(nextAllowedIncrement))) {
+      await sqlQuery(
+        `UPDATE recipe SET likes_count = likes_count - 1 WHERE id = '${recipeId}'`
+      );
+
+      // update next allowed inc
+      await sqlQuery(
+        `UPDATE likes SET next_increment = '${now}' WHERE recipe_id = '${recipeId}' AND user_id = '${userId}'`
+      );
+
+      res.status(200).json({ message: "Successfully Disliked", success: true });
+    } else {
+      res.status(409).json({
+        message: "You already disliked this recipe.",
+        success: false,
+      });
+    }
+  } catch (error) {
+    const err = new Error();
+    err.response = { message: "Server is down at the moment" };
+
+    next(err);
+  }
+}
