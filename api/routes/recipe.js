@@ -10,6 +10,7 @@ import {
   likeRecipe,
   getRecipeLikes,
   dislikeRecipe,
+  getTopRecipes,
 } from "../controller/recipeController";
 
 const app = express();
@@ -30,4 +31,6 @@ app
   .post(likeRecipe)
   .patch(dislikeRecipe);
 
+// top recipes
+app.route("/api/recipe-rank").get(getTopRecipes);
 module.exports = app;
