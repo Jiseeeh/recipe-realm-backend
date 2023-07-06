@@ -312,3 +312,18 @@ export async function dislikeRecipe(req, res, next) {
     next(err);
   }
 }
+
+export async function getTopRecipes(req, res, next) {
+  const { limit } = req.query;
+
+  try {
+    const result = await pool.query(
+      "SELECT id,name,image_link,likes_count, RANK() OVER(ORDER BY likes_count DESC) as rank FROM recipe WHERE is_pending = FALSE AND likes_count > 0 LIMIT ? ",
+      [Number(limit)]
+    );
+
+    res.json(result[0]);
+  } catch {
+    next(new Error());
+  }
+}
