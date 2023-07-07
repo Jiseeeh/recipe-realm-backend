@@ -338,7 +338,7 @@ export async function getTopRecipes(req, res, next) {
 
   try {
     const result = await pool.query(
-      "SELECT id,name,image_link,likes_count, RANK() OVER(ORDER BY likes_count DESC) as rank FROM recipe WHERE is_pending = FALSE AND likes_count > 0 LIMIT ?",
+      "SELECT id,name,image_link,likes_count, RANK() OVER(ORDER BY likes_count DESC) as recipe_rank FROM recipe WHERE is_pending = FALSE AND likes_count > 0 LIMIT ?",
       [Number(limit)]
     );
 
