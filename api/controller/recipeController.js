@@ -13,6 +13,26 @@ export async function createRecipe(req, res, next) {
     recipeDescription,
   } = req.query;
 
+  const MAX_RECIPE_NAME_LENGTH = 18;
+
+  if (recipeName.length > MAX_RECIPE_NAME_LENGTH) {
+    const err = new Error();
+    err.response = { message: "Recipe name too long", success: false };
+    err.statusCode = 400;
+
+    next(err);
+    return;
+  }
+
+  if (!imageLink.match(/\bhttps?:\/\/\S+\.(?:webp|jpe?g|png)\b/)) {
+    const err = new Error();
+    err.response = { message: "Image link is not valid", success: false };
+    err.statusCode = 400;
+
+    next(err);
+    return;
+  }
+
   try {
     const uuid = v4();
 
