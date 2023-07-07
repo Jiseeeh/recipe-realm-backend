@@ -343,7 +343,9 @@ export async function getTopRecipes(req, res, next) {
     );
 
     res.json(result[0]);
-  } catch {
-    next(new Error());
+  } catch (error) {
+    const err = new Error();
+    err.response = { error };
+    next(err);
   }
 }
